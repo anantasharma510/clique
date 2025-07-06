@@ -231,6 +231,7 @@ export default function Footer() {
                 { name: "Shipping Info", href: "/shipping" },
                 { name: "Returns", href: "/returns" },
             
+                
                 { name: "Privacy Policy", href: "/privacy-policy" },
                 { name: "Terms", href: "/terms" },
               ].map((link, index) => (
