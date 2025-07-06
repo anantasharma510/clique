@@ -359,9 +359,6 @@ export const verifyPayment = async (req: Request, res: Response, next: NextFunct
     return;
   }
 
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   // Extract variables early for error handling
   const { 
     transaction_uuid, 
@@ -386,9 +383,8 @@ export const verifyPayment = async (req: Request, res: Response, next: NextFunct
     });
 
     // Find the order
-    order = await Order.findOne({ transaction_uuid }).session(session);
+    order = await Order.findOne({ transaction_uuid });
     if (!order) {
-      await session.abortTransaction();
       console.error('[Payment Verification] Order not found:', transaction_uuid);
       res.status(404).json({ message: 'Order not found' });
       return;
@@ -396,7 +392,6 @@ export const verifyPayment = async (req: Request, res: Response, next: NextFunct
 
     // Check if payment was successful
     if (status !== 'COMPLETE') {
-      await session.abortTransaction();
       console.log('[Payment Verification] Payment not complete:', status);
       res.status(200).json({ message: 'Payment not complete' });
       return;
@@ -404,7 +399,6 @@ export const verifyPayment = async (req: Request, res: Response, next: NextFunct
 
     // Check if order already processed
     if (order.status === 'COMPLETED') {
-      await session.abortTransaction();
       console.log('[Payment Verification] Order already completed:', order._id);
       res.status(200).json({ message: 'Order already processed' });
       return;
@@ -425,7 +419,6 @@ export const verifyPayment = async (req: Request, res: Response, next: NextFunct
         
         if (isProduction) {
           // In production, reject invalid signatures
-          await session.abortTransaction();
           res.status(400).json({ message: 'Invalid signature' });
           return;
         } else {
@@ -440,7 +433,6 @@ export const verifyPayment = async (req: Request, res: Response, next: NextFunct
       
       if (isProduction) {
         // In production, require signature
-        await session.abortTransaction();
         res.status(400).json({ message: 'Signature required' });
         return;
       } else {
@@ -451,7 +443,6 @@ export const verifyPayment = async (req: Request, res: Response, next: NextFunct
 
     // Verify amount matches
     if (parseFloat(total_amount) !== order.totalAmount) {
-      await session.abortTransaction();
       console.error('[Payment Verification] Amount mismatch:', {
         received: total_amount,
         expected: order.totalAmount
