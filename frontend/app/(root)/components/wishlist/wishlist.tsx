@@ -23,7 +23,7 @@ export default function WishlistIcon({ count = 0, onClick }: WishlistIconProps) 
           {count}
         </Badge>
       )}
-      <span className="sr-only">Wishlist ({count} items)</span>
+      <span className="sr-only">wishlist ({count} items)</span>
     </Button>
   )
 }
