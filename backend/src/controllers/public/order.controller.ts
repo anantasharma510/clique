@@ -3,6 +3,7 @@ import { AuthRequest } from '../../middleware/auth.middleware'; // Adjust path
 import { Order } from '../../models/order.model'; // Adjust path
 import mongoose from 'mongoose';
 import { Product } from '../../models/product.model'; // Adjust path
+import { Province } from '../../models/shipping.model';
 import crypto from 'crypto';
 import { sendOrderConfirmationEmail } from '../../services/email.service';
 import { asyncHandler } from '../../utils/asyncHandler';
@@ -119,19 +120,14 @@ const validateOrderData = (items: any[], userId: string): { valid: boolean; erro
  * @access  Private
  */
 export const createOrder = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   try {
     // Security checks
     if (!req.user) {
-      await session.abortTransaction();
       res.status(401).json({ message: 'Unauthorized' });
       return;
     }
 
     if (req.user.isBlocked) {
-      await session.abortTransaction();
       res.status(403).json({ 
         message: 'Account blocked. Please contact support for assistance.' 
       });
@@ -143,7 +139,6 @@ export const createOrder = async (req: AuthRequest, res: Response, next: NextFun
     // Validate order data
     const validation = validateOrderData(items, req.user._id.toString());
     if (!validation.valid) {
-      await session.abortTransaction();
       res.status(400).json({ message: validation.error });
       return;
     }
@@ -153,16 +148,14 @@ export const createOrder = async (req: AuthRequest, res: Response, next: NextFun
     let subtotal = 0;
 
     for (const item of validation.orderItems!) {
-      const product = await Product.findById(item.productId).session(session);
+      const product = await Product.findById(item.productId);
       
       if (!product) {
-        await session.abortTransaction();
         res.status(404).json({ message: `Product not found: ${item.productId}` });
         return;
       }
 
       if (product.stockQuantity < item.quantity) {
-        await session.abortTransaction();
         res.status(400).json({ 
           message: `Insufficient stock for ${product.title}. Available: ${product.stockQuantity}, Requested: ${item.quantity}` 
         });
@@ -180,11 +173,10 @@ export const createOrder = async (req: AuthRequest, res: Response, next: NextFun
     }
 
     // Calculate shipping and tax
-    const { Province } = require('../../models/shipping.model');
     const province = await Province.findOne({
       'cities.name': shippingInfo.city,
       'cities.isActive': true
-    }).session(session);
+    });
 
     let shippingCharge = 0;
     if (province) {
@@ -197,7 +189,7 @@ export const createOrder = async (req: AuthRequest, res: Response, next: NextFun
     // Calculate tax from tax-inclusive prices
     let totalTaxAmount = 0;
     for (const item of orderItems) {
-      const product = await Product.findById(item.productId).session(session);
+      const product = await Product.findById(item.productId);
       if (product) {
         const effectivePrice = product.discountPrice || product.originalPrice;
         const basePrice = effectivePrice / (1 + product.taxRate);
@@ -229,7 +221,7 @@ export const createOrder = async (req: AuthRequest, res: Response, next: NextFun
       shippingInfo,
       shippingCharge,
       tax: Math.round(totalTaxAmount)
-    }], { session });
+    }]);
 
     // Log audit event
     logAuditEvent('ORDER_CREATED', req.user._id.toString(), order[0]._id.toString(), {
@@ -237,8 +229,6 @@ export const createOrder = async (req: AuthRequest, res: Response, next: NextFun
       totalAmount,
       itemCount: orderItems.length
     });
-
-    await session.commitTransaction();
 
     res.json({
       orderId: order[0]._id,
@@ -259,7 +249,6 @@ export const createOrder = async (req: AuthRequest, res: Response, next: NextFun
     });
 
   } catch (error: any) {
-    await session.abortTransaction();
     console.error("[Order Controller] Create Order Error:", error.message);
     
     // Log order failure for monitoring
@@ -272,8 +261,6 @@ export const createOrder = async (req: AuthRequest, res: Response, next: NextFun
     }
     
     res.status(500).json({ message: "Server error while creating order" });
-  } finally {
-    session.endSession();
   }
 };
 
