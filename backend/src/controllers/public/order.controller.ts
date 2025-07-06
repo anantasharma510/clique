@@ -454,22 +454,20 @@ export const verifyPayment = async (req: Request, res: Response, next: NextFunct
     // Update order status
     order.status = 'COMPLETED';
     order.eSewaRefId = transaction_code;
-    await order.save({ session });
+    await order.save();
 
     // Reduce stock quantities
     for (const item of order.items) {
-      const product = await Product.findById(item.productId).session(session);
+      const product = await Product.findById(item.productId);
       
       if (!product) {
-        await session.abortTransaction();
         console.error(`[Payment Verification] Product not found: ${item.productId}`);
         res.status(404).json({ message: `Product not found: ${item.productId}` });
         return;
       }
 
-      // Final stock check inside transaction
+      // Final stock check
       if (product.stockQuantity < item.quantity) {
-        await session.abortTransaction();
         console.error(`[Payment Verification] Insufficient stock for product: ${product.title}`);
         
         // Log stock depletion alert
@@ -498,7 +496,7 @@ export const verifyPayment = async (req: Request, res: Response, next: NextFunct
         product.status = 'out-of-stock';
       }
 
-      await product.save({ session });
+      await product.save();
     }
 
     // Log audit event
@@ -507,8 +505,6 @@ export const verifyPayment = async (req: Request, res: Response, next: NextFunct
       transaction_code,
       total_amount
     });
-
-    await session.commitTransaction();
 
     // Send confirmation email
     try {
@@ -551,7 +547,6 @@ export const verifyPayment = async (req: Request, res: Response, next: NextFunct
     });
 
   } catch (error: any) {
-    await session.abortTransaction();
     console.error('[Payment Verification] Error:', error.message);
     
     // Add to dead letter queue for retry
@@ -573,8 +568,6 @@ export const verifyPayment = async (req: Request, res: Response, next: NextFunct
     }
     
     res.status(500).json({ message: 'Server error while verifying payment' });
-  } finally {
-    session.endSession();
   }
 };
 
@@ -670,4 +663,4 @@ export const verifyPaymentStatus = async (req: Request, res: Response, next: Nex
     console.error('[Payment Status Check] Error:', error.message);
     res.status(500).json({ message: 'Server error while verifying payment status' });
   }
-};
+}; 
