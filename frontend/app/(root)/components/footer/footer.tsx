@@ -230,7 +230,7 @@ export default function Footer() {
                 { name: "FAQ", href: "/faq" },
                 { name: "Shipping Info", href: "/shipping" },
                 { name: "Returns", href: "/returns" },
-                { name: "Size Guide", href: "/size-guide" },
+            
                 { name: "Privacy Policy", href: "/privacy-policy" },
                 { name: "Terms", href: "/terms" },
               ].map((link, index) => (
