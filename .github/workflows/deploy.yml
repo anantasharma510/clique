@@ -90,7 +90,7 @@ jobs:
           
           # Pull latest changes
           echo "📥 Pulling latest changes..."
-          git remote set-url origin https://github.com/${{ github.repository }}.git
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
           git fetch origin
           git reset --hard origin/main
           
