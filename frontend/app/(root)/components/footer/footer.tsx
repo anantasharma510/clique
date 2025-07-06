@@ -233,7 +233,7 @@ export default function Footer() {
             
 
                 { name: "Privacy Policy", href: "/privacy-policy" },
-                { name: "Terms", href: "/terms" },
+                { name: "Terms", href: "/terms" },  
               ].map((link, index) => (
                 <motion.li
                   key={link.name}
