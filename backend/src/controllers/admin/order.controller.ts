@@ -123,13 +123,9 @@ export const getOrderById = asyncHandler(async (req: AuthRequest, res: Response,
  * @access  Private/Admin
  */
 export const updateOrderStatus = asyncHandler(async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   try {
     // Security check
     if (!req.user || req.user.role !== 'admin') {
-      await session.abortTransaction();
       res.status(403).json({ message: 'Access denied. Admin privileges required.' });
       return;
     }
@@ -137,28 +133,25 @@ export const updateOrderStatus = asyncHandler(async (req: AuthRequest, res: Resp
     const { status } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      await session.abortTransaction();
       res.status(400).json({ message: 'Invalid order ID format' });
       return;
     }
 
     if (!status || !['PENDING', 'COMPLETED', 'DELIVERED', 'FAILED'].includes(status.toUpperCase())) {
-      await session.abortTransaction();
       res.status(400).json({ message: 'Invalid status provided. Must be one of: PENDING, COMPLETED, DELIVERED, FAILED.' });
       return;
     }
 
-    const order = await Order.findById(req.params.id).session(session);
+    const order = await Order.findById(req.params.id);
 
     if (!order) {
-      await session.abortTransaction();
       res.status(404).json({ message: 'Order not found' });
       return;
     }
 
     const oldStatus = order.status;
     order.status = status.toUpperCase() as 'PENDING' | 'COMPLETED' | 'DELIVERED' | 'FAILED';
-    const updatedOrder = await order.save({ session });
+    const updatedOrder = await order.save();
 
     // Log audit event
     logAuditEvent('ORDER_STATUS_UPDATED', req.user._id.toString(), order._id.toString(), {
@@ -168,19 +161,15 @@ export const updateOrderStatus = asyncHandler(async (req: AuthRequest, res: Resp
       adminId: req.user._id
     });
 
-    await session.commitTransaction();
     res.json(updatedOrder);
 
   } catch (error: any) {
-    await session.abortTransaction();
     console.error('[Admin Order Controller] Update Order Status Error:', error.message);
     if (error.name === 'ValidationError') {
       res.status(400).json({ message: 'Validation Error', errors: error.errors });
     } else {
       res.status(500).json({ message: 'Server error while updating order status' });
     }
-  } finally {
-    session.endSession();
   }
 });
 
@@ -190,13 +179,9 @@ export const updateOrderStatus = asyncHandler(async (req: AuthRequest, res: Resp
  * @access  Private/Admin
  */
 export const updateOrderDeliveryStatus = asyncHandler(async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   try {
     // Security check
     if (!req.user || req.user.role !== 'admin') {
-      await session.abortTransaction();
       res.status(403).json({ message: 'Access denied. Admin privileges required.' });
       return;
     }
@@ -204,28 +189,25 @@ export const updateOrderDeliveryStatus = asyncHandler(async (req: AuthRequest, r
     const { deliveryStatus } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      await session.abortTransaction();
       res.status(400).json({ message: 'Invalid order ID format' });
       return;
     }
 
     if (!deliveryStatus || !['PENDING', 'SHIPPED', 'DELIVERED', 'CANCELLED'].includes(deliveryStatus.toUpperCase())) {
-      await session.abortTransaction();
       res.status(400).json({ message: 'Invalid delivery status provided. Must be one of: PENDING, SHIPPED, DELIVERED, CANCELLED.' });
       return;
     }
 
-    const order = await Order.findById(req.params.id).session(session);
+    const order = await Order.findById(req.params.id);
 
     if (!order) {
-      await session.abortTransaction();
       res.status(404).json({ message: 'Order not found' });
       return;
     }
 
     const oldDeliveryStatus = order.deliveryStatus;
     order.deliveryStatus = deliveryStatus.toUpperCase() as 'PENDING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
-    const updatedOrder = await order.save({ session });
+    const updatedOrder = await order.save();
 
     // Log audit event
     logAuditEvent('ORDER_DELIVERY_STATUS_UPDATED', req.user._id.toString(), order._id.toString(), {
@@ -235,19 +217,15 @@ export const updateOrderDeliveryStatus = asyncHandler(async (req: AuthRequest, r
       adminId: req.user._id
     });
 
-    await session.commitTransaction();
     res.json(updatedOrder);
 
   } catch (error: any) {
-    await session.abortTransaction();
     console.error('[Admin Order Controller] Update Order Delivery Status Error:', error.message);
     if (error.name === 'ValidationError') {
       res.status(400).json({ message: 'Validation Error', errors: error.errors });
     } else {
       res.status(500).json({ message: 'Server error while updating order delivery status' });
     }
-  } finally {
-    session.endSession();
   }
 });
 

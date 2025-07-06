@@ -144,12 +144,9 @@ class DeadLetterQueueService {
       const { Product } = await import('../models/product.model');
       const { sendOrderConfirmationEmail } = await import('./email.service');
 
-      const session = await mongoose.startSession();
-      session.startTransaction();
-
       try {
         // Find the order
-        const order = await Order.findOne({ transaction_uuid: failedPayment.transaction_uuid }).session(session);
+        const order = await Order.findOne({ transaction_uuid: failedPayment.transaction_uuid });
         
         if (!order) {
           throw new Error('Order not found');
@@ -170,11 +167,11 @@ class DeadLetterQueueService {
           // Update order status
           order.status = 'COMPLETED';
           order.eSewaRefId = paymentStatus.transaction_code;
-          await order.save({ session });
+          await order.save();
 
           // Reduce stock quantities
           for (const item of order.items) {
-            const product = await Product.findById(item.productId).session(session);
+            const product = await Product.findById(item.productId);
             
             if (!product) {
               throw new Error(`Product not found: ${item.productId}`);
@@ -190,10 +187,8 @@ class DeadLetterQueueService {
               product.status = 'out-of-stock';
             }
 
-            await product.save({ session });
+            await product.save();
           }
-
-          await session.commitTransaction();
 
           // Send confirmation email
           try {
@@ -248,10 +243,7 @@ class DeadLetterQueueService {
         }
 
       } catch (error: any) {
-        await session.abortTransaction();
         throw error;
-      } finally {
-        session.endSession();
       }
 
     } catch (error: any) {
