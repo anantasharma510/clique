@@ -72,8 +72,16 @@ const validateEnvironment = (): void => {
   }
 };
 
+const allowedOrigins = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim()) : ['http://localhost:3000'];
+
+// Filter origins for CSP - only include valid HTTPS URLs
+const cspOrigins = allowedOrigins.filter(origin => 
+  origin.startsWith('https://') && 
+  (origin.includes('shoponclique.com') || origin.includes('localhost'))
+);
+
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: allowedOrigins,
   credentials: true, // <-- IMPORTANT: Allow sending cookies (for refreshToken)
   methods: ['GET', 'POST', 'PUT', 'DELETE','PATCH'], // Allowed HTTP methods
   allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-Request-ID'],
@@ -88,7 +96,10 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'"],
       scriptSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", process.env.CORS_ORIGIN || ''],
+      connectSrc: [
+        "'self'",
+        ...cspOrigins
+      ],
       fontSrc: ["'self'"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],

@@ -210,3 +210,54 @@ This guide outlines the comprehensive SEO implementation for Shop On Clique, a p
 - **Featured Snippets:** 5+ featured snippets
 
 This comprehensive SEO strategy positions Shop On Clique as the leading fashion e-commerce destination in Nepal, with strong local presence and excellent user experience. 
+
+## **Root Cause:**
+The `www` subdomain is not properly configured in your nginx setup. Looking at your nginx configuration, you have:
+
+```nginx
+<code_block_to_apply_changes_from>
+```
+
+But the `www` subdomain might not be properly handling the API routes.
+
+## **The Problem:**
+When someone visits `https://www.shoponclique.com/`, the frontend loads but the API calls are likely going to the wrong endpoint or not being routed correctly.
+
+## **Solution:**
+
+You need to ensure that **both domains** (`shoponclique.com` and `www.shoponclique.com`) are properly configured to handle API routes. Here's what to check on your VPS:
+
+### **1. Check if both domains are enabled:**
+```bash
+sudo nginx -t
+sudo systemctl status nginx
+```
+
+### **2. Verify your nginx configuration includes both domains:**
+Make sure your `/etc/nginx/sites-available/shoponclique` file has:
+```nginx
+server_name shoponclique.com www.shoponclique.com;
+```
+
+### **3. Check if the site is enabled:**
+```bash
+sudo ln -s /etc/nginx/sites-available/shoponclique /etc/nginx/sites-enabled/
+```
+
+### **4. Test the API endpoints directly:**
+On your VPS, test if the API works on both domains:
+```bash
+# Test without www
+curl -I https://shoponclique.com/api/public/products
+
+# Test with www
+curl -I https://www.shoponclique.com/api/public/products
+```
+
+### **5. Check browser console errors:**
+Open the browser developer tools on `https://www.shoponclique.com/` and check the Console tab for any API errors.
+
+## **Most Likely Fix:**
+The issue is probably that your frontend is making API calls to the wrong domain. Check your frontend environment variables to ensure the API URL is configured correctly for both domains.
+
+Can you check your VPS and run these commands to diagnose the exact issue? 
