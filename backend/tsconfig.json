@@ -1,17 +1,17 @@
-{
-  "compilerOptions": {
-    "target": "es2016", // My previous example used "ES2020", which is newer but "es2016" is fine.
-    "module": "commonjs",
-    "rootDir": ".",
-    "outDir": "./dist",
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
-    "skipLibCheck": true,
-    "sourceMap": true,
-    "resolveJsonModule": true // Added this from my initial suggestion, good to have.
-    // Ensure there are no other options like 'include' or 'exclude' mistakenly placed here.
-  },
-  "include": ["src/**/*"], // This MUST be at the root level, not inside compilerOptions
-  "exclude": ["node_modules", "**/*.spec.ts"] // This MUST be at the root level
-}
+  {
+    "compilerOptions": {
+      "target": "es2016", // My previous example used "ES2020", which is newer but "es2016" is fine.
+      "module": "commonjs",
+      "rootDir": ".",
+      "outDir": "./dist",
+      "esModuleInterop": true,
+      "forceConsistentCasingInFileNames": true,
+      "strict": true,
+      "skipLibCheck": true,
+      "sourceMap": true,
+      "resolveJsonModule": true // Added this from my initial suggestion, good to have.
+      // Ensure there are no other options like 'include' or 'exclude' mistakenly placed here.
+    },
+    "include": ["src/**/*"], // This MUST be at the root level, not inside compilerOptions
+    "exclude": ["node_modules", "**/*.spec.ts"] // This MUST be at the root level
+  }

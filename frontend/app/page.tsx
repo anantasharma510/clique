@@ -19,10 +19,45 @@ import { ProductShowcase } from "./(root)/components/product-showcase/product-sh
 import TrustBadges from "./(root)/components/trust-badges/trust-badges"
 import NewsletterSignup from "./(root)/components/newsletter/newsletter-signup"
 import FeaturesSection from "./(root)/components/features/features-section"
+import Script from 'next/script'
 
 export default function HomePage() {
+  // Structured Data for Homepage
+  const homepageSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Shop On Clique - Premium Fashion & Lifestyle Store",
+    "description": "Discover the latest fashion trends, premium clothing, accessories, and lifestyle products. Free shipping on orders over NPR 2000. Secure payments with eSewa, cards & cash on delivery.",
+    "url": "https://shoponclique.com",
+    "mainEntity": {
+      "@type": "ItemList",
+      "name": "Featured Products",
+      "description": "Handpicked collection of premium fashion and lifestyle products"
+    },
+    "breadcrumb": {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://shoponclique.com"
+        }
+      ]
+    }
+  }
+
   return (
     <>
+      {/* Structured Data for Homepage */}
+      <Script
+        id="homepage-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(homepageSchema),
+        }}
+      />
+      
       <Navbar />
       
       {/* Hero Section */}
