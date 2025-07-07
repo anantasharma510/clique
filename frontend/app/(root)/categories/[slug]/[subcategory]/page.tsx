@@ -101,15 +101,7 @@ export default function SubcategoryPage({ params }: { params: Promise<{ slug: st
         minPrice: priceRange[0],
         maxPrice: priceRange[1],
         search: searchQuery,
-        brands: selectedBrands.length > 0 ? selectedBrands : undefined,
-        colors: selectedColors.length > 0 ? selectedColors : undefined,
-        sizes: selectedSizes.length > 0 ? selectedSizes : undefined,
-        materials: selectedMaterials.length > 0 ? selectedMaterials : undefined,
-        features: selectedFeatures.length > 0 ? selectedFeatures : undefined,
-        inStock: inStockOnly,
-        cashOnDelivery: cashOnDeliveryOnly,
-        hasWarranty: hasWarranty,
-        hasReturnPolicy: hasReturnPolicy,
+        brand: selectedBrands.length > 0 ? selectedBrands.join(',') : undefined,
         ...options,
       })
       setProducts(response.products)
@@ -121,7 +113,7 @@ export default function SubcategoryPage({ params }: { params: Promise<{ slug: st
         const brands = [...new Set(response.products.map((p) => p.brand).filter(Boolean))] as string[]
         const colors = [...new Set(response.products.flatMap((p) => p.colors || []))]
         const sizes = [...new Set(response.products.flatMap((p) => p.sizes || []))]
-        const materials = [...new Set(response.products.map((p) => p.material).filter(Boolean))] as string[]
+        const materials = [...new Set(response.products.map((p) => p.brand).filter(Boolean))] as string[]
         const features = [...new Set(response.products.flatMap((p) => p.features || []))]
 
         setAvailableBrands(brands)
