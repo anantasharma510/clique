@@ -94,7 +94,7 @@ const getESewaConfig = (): ESewaConfig => {
     baseConfig.MERCHANT_ID = process.env.ESEWA_MERCHANT_ID!;
     baseConfig.SUCCESS_URL = process.env.ESEWA_SUCCESS_URL!;
     baseConfig.FAILURE_URL = process.env.ESEWA_FAILURE_URL!;
-    baseConfig.VERIFICATION_URL = process.env.ESEWA_VERIFICATION_URL || "https://esewa.com.np/epay/transrec";
+    baseConfig.VERIFICATION_URL = process.env.ESEWA_VERIFICATION_URL || "";
     
     // Strict security in production
     baseConfig.ENABLE_STRICT_SIGNATURE = true;

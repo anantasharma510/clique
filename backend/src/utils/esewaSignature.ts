@@ -45,7 +45,7 @@ export class ESewaSignatureVerifier {
       console.log('[ESewa Signature] Signatures match:', signaturesMatch);
 
       // Additional verification: Check if using test credentials
-      if (ESEWA_CONFIG.SECRET_KEY === "8gBm/:&EnhH.1/q") {
+      if (process.env.NODE_ENV !== 'production') {
         console.log('[ESewa Signature] Using test credentials - signature verification may be lenient');
       }
 
